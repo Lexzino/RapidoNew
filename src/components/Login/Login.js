@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Loginmobile from "../../assets/images/Loginmobile.svg";
 import Googlered from "../../assets/images/Googlered.svg";
 import Appleblack from "../../assets/images/Appleblack.svg";
 import Facebookblue from "../../assets/images/Facebookblue.svg";
 import { useAuth } from "../services/authService";
 import { message } from "antd";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Login() {
   const { login } = useAuth();
@@ -13,24 +14,83 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState("Super Admin");
-
-  const handleLogin = async () => {
-    const credentials = { email, password, activeTab };
-    try {
-      await login(credentials)
-        .then((res) => {
-          if (res) {
-            message.success("Super Admin login successful");
-            navigate("/dashboard");
-          } else {
-            message.error("Invalid email or password");
-          }
-        })
-        .catch(() => {});
-    } catch (error) {
-      console.error("Login failed:", error.message);
+  const [params] = useSearchParams();
+  const user = params.get('user')
+  useEffect (() => {
+    if(user ===  "provider") {
+      setActiveTab("Provider")
     }
-  };
+  }, {})
+
+  
+  // Base URL for the backend
+  const BASE_URL = "https://rapido-brb7.onrender.com/api/auth/superadmin-login";
+
+  // Login handler
+  const handleLogin = async () => {
+// Validate input
+if (!email || !password) {
+  message.error("Please fill in all required fields");
+  return;
+}
+
+// Prepare credentials
+const credentials = {
+  email,
+  password,
+  role: activeTab,
+};
+
+// API Call to backend
+try {
+  const response = await axios.post(BASE_URL, credentials);
+  console.log(response);
+  const token = response.data?.token;
+  const userData = response.data.superAdmin
+  console.log(userData);
+  const userRole = userData.role; // Adjust based on actual API response
+  if (response.status === 200) { // Typically login uses 200, not 201 (201 is for creation)
+    message.success("Login successful");
+
+
+    // Store user data in sessionStorage
+    sessionStorage.setItem("user", JSON.stringify({
+      ...userData,
+      displayName: userRole === "SuperAdmin" 
+        ? `${userData.firstName} ${userData.lastName}`
+        : `${userData.title} ${userData.fullName}`
+    }));
+
+    
+if (token) {
+sessionStorage.setItem("token", token);
+} else {
+message.error("Token not received from server");
+}
+
+
+    // Navigate based on userType
+    setTimeout(() => {
+              console.log("User Role:", userRole); // Debugging
+            
+              if (userRole === "SuperAdmin") {
+                navigate("/superadmin");
+              } else if (userRole === "Provider") {
+                navigate("/partners");
+              } else {
+                message.error("Unexpected role from server");
+              }
+            }, 100);
+  } else {
+    message.error(response.data.message || "Error during login");
+  }
+} catch (error) {
+  console.error("Login failed:", error.message);
+  message.error(
+    error.response?.data?.message || "An unexpected error occurred"
+  );
+}
+};
 
   return (
     <div className="flex flex-col lg:flex-row items-stretch w-full h-[80vh] bg-[#EAF9D6]">

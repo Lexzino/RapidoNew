@@ -17,7 +17,12 @@ import PrivacyPolicy from './pages/privacyPolicy';
 import Explore from './pages/Explore';
 import ContactUs from './pages/contact-us';
 import Blog from './pages/Blog';
-import Dashboard from './pages/Dashboard/index.js';
+import SuperAdmin from "./pages/AllDashboards/SuperAdmin/index.jsx";
+import AdminDashboardRoute from './pages/AllDashboards/Routes/AdminDashboardroute';
+import Partners from "./pages/AllDashboards/PartnersDashboard/Index.jsx";
+import PartnersDashboardLayout from './pages/AllDashboards/components/Layouts/PartnersDashboardLayout';
+import WaitingList from './pages/AllDashboards/components/WaitingListPage';
+import DoctorsList from './pages/AllDashboards/components/DoctorsListPage';
 
 function App() {
   return (
@@ -28,6 +33,12 @@ function App() {
     </Router>
   );
 }
+
+const PartnersDashboardRoute = ({ children }) => (
+  <PartnersDashboardLayout>
+    {children}
+  </PartnersDashboardLayout>
+);
 
 function MainApp() {
   const location = useLocation(); // Use the hook here, inside the Router context
@@ -55,7 +66,16 @@ function MainApp() {
               <Route path="/mental-health" element={<MentalHealthPage />} />
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/blog" element={<Blog />} />
-              <Route path="/dashboard" element={<AuthGuard adminRequired><Dashboard /></AuthGuard>} />
+              <Route path="/superadmin" element={<AdminDashboardRoute />}>
+                <Route index element={<SuperAdmin />} />
+                <Route path="waitinglist" element={<WaitingList />} />
+                <Route path="doctorslist" element={<DoctorsList />} />
+              </Route>
+              <Route path="/partners" element={
+                <PartnersDashboardRoute>
+                  <Partners />
+                </PartnersDashboardRoute>
+              } />
             </Routes>
           </div>
         </CSSTransition>

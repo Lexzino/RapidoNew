@@ -5,23 +5,62 @@ import Appleblack from "../../assets/images/Appleblack.svg";
 import Facebookblue from "../../assets/images/Facebookblue.svg";
 import { useAuth } from "../services/authService";
 import { message } from "antd";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [title, setTitle] = useState("Dr"); // Default title
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [activeTab, setActiveTab] = useState("Super Admin");
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [specialty, setSpecialty] = useState(""); // Practice Specialty or Pharmacy Store Name
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    fullName: "",
+    title: "Dr",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    activeTab: "SuperAdmin",
+    acceptTerms: false,
+    specialty: "",
+  });
+
+  const {
+    firstName,
+    lastName,
+    fullName,
+    title,
+    email,
+    password,
+    confirmPassword,
+    activeTab,
+    acceptTerms,
+    specialty
+  } = formData;
+
+  const BASE_URL = "https://rapido-brb7.onrender.com/api/auth/superadmin-signup";
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const setActiveTab = (tab) => {
+    setFormData(prev => ({
+      ...prev,
+      activeTab: tab
+    }));
+  };
 
   const handleSignup = async () => {
+    if (!email || !password || (!firstName && activeTab === "SuperAdmin") || (!lastName && activeTab === "SuperAdmin") || (activeTab === "Provider" && !fullName) || (activeTab === "Provider" && !specialty)) {
+      message.error("Please fill in all required fields");
+      return;
+    }
+
     if (password !== confirmPassword) {
       message.error("Passwords do not match");
       return;
@@ -32,32 +71,50 @@ export default function Signup() {
       return;
     }
 
+    const displayName = activeTab === "Provider" ? `${title} ${fullName}` : `${firstName} ${lastName}`;
+
     const credentials = {
       firstName,
       lastName,
-      fullName,
+      fullName: activeTab === "Provider" ? fullName : `${firstName} ${lastName}`,
       title,
       email,
       password,
-      activeTab,
-      specialty,
+      role: activeTab,
+      specialty: activeTab === "Provider" ? specialty : undefined,
+      displayName: displayName // Adding displayName to the credentials
     };
 
     try {
-      await signup(credentials)
-        .then((res) => {
-          if (res) {
-            message.success("Sign-up successful");
-            navigate("/dashboard");
+      const response = await axios.post(BASE_URL, credentials);
+      console.log("User Role:", response);
+      if (response.status === 201) {
+        message.success("Sign-up successful");
+        
+
+        setTimeout(() => {
+          const userRole = credentials.role; // Adjust based on actual API response
+          console.log("User Role:", response); // Debugging
+        
+          if (userRole === "SuperAdmin") {
+            navigate("/login");
+          } else if (userRole === "Provider") {
+            navigate("/login?user=Provider");
           } else {
-            message.error("Error during sign-up");
+            message.error("Unexpected role from server");
           }
-        })
-        .catch(() => {});
+        }, 100);
+        
+        
+      } else {
+        message.error(response.data.message || "Error during sign-up");
+      }
     } catch (error) {
-      console.error("Sign-up failed:", error.message);
+      message.error(error.response?.data?.message || "An unexpected error occurred");
     }
   };
+
+  // Rest of the component remains the
 
   return (
     <div className="flex flex-col lg:flex-row items-stretch w-full h-full lg:h-[80vh] bg-[#EAF9D6]">
@@ -105,7 +162,7 @@ export default function Signup() {
                     className="rounded-[5px] border-[1px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
                     placeholder="First Name"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={handleChange}
                   />
                   <p className="text-tiny text-red-vlight">Required</p>
                 </div>
@@ -116,7 +173,7 @@ export default function Signup() {
                     className="rounded-[5px] border-[1.5px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
                     placeholder="Last Name"
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={handleChange}
                   />
                   <p className="text-tiny text-red-vlight">Required</p>
                 </div>
@@ -132,7 +189,7 @@ export default function Signup() {
                     className="rounded-[5px] border-[1px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
                     placeholder="Full Name"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={handleChange}
                   />
                   <p className="text-tiny text-red-vlight">Required</p>
                 </div>
@@ -140,12 +197,12 @@ export default function Signup() {
                   <h1 className="text-lg text-green-dark">Title</h1>
                   <select
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={handleChange}
                     className="rounded-[5px] border-[1px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
                   >
                     <option value="Dr">Dr</option>
-                    <option value="Mr">Mr</option>
-                    <option value="Mrs">Mrs</option>
+                    <option value="Mr">Pharm</option>
+                    <option value="Mrs">Thera</option>
                   </select>
                 </div>
               </div>
@@ -157,7 +214,7 @@ export default function Signup() {
                   className="rounded-[5px] border-[1.5px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
                   placeholder="Practice Specialty or Pharmacy Store Name"
                   value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
+                  onChange={handleChange}
                 />
                 <p className="text-tiny text-red-vlight">Required</p>
               </div>
@@ -171,7 +228,7 @@ export default function Signup() {
               className="rounded-[5px] border-[1.5px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
               placeholder="Email Address/Phone Number"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleChange}
             />
             <p className="text-tiny text-red-vlight">Required</p>
           </div>
@@ -184,7 +241,7 @@ export default function Signup() {
                 className="rounded-[5px] border-[1.5px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleChange}
               />
               <p className="text-tiny text-red-vlight">Required</p>
             </div>
@@ -195,7 +252,7 @@ export default function Signup() {
                 className="rounded-[5px] border-[1.5px] border-green-dark w-full h-[45px] text-base pl-4 mt-2"
                 placeholder="Confirm Password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={handleChange}
               />
               <p className="text-tiny text-red-vlight">Required</p>
             </div>
@@ -209,7 +266,7 @@ export default function Signup() {
                 aria-describedby="helper-checkbox-text"
                 type="checkbox"
                 checked={acceptTerms}
-                onChange={() => setAcceptTerms(!acceptTerms)}
+                onChange={handleChange}
                 className="w-4 h-4 bg-white border border-green-dark rounded-[5px] subscribe-set"
               />
             </div>
