@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "../../LanguageContext"; // Import the context
 import { translations } from "../../translations"; // Import translations
-
 import Google from "../../assets/images/Google play2.svg";
 import Apple from "../../assets/images/Appss.svg";
 import Heroimg1 from "../../assets/images/landing-hero.png";
