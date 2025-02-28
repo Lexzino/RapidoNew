@@ -49,7 +49,7 @@ const WaitingList = () => {
         email: "jenny.wilson@example.com",
         date: "10/15/2020",
         visitTime: "12:00-12:45pm",
-        image: "/images/jennywilson.png",
+        image: "/images/Jennywilson.png",
       }
     ],
     "Doctors": [],

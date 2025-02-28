@@ -18,7 +18,7 @@ export default function ProvideMarketplace() {
     setLangUpdated(false); // Reset state before language change
     const timeout = setTimeout(() => {
       setLangUpdated(true); // Update state after a brief delay
-    }, 100); // Delay to allow the context to update
+    }, 10); // Delay to allow the context to update
     return () => clearTimeout(timeout); // Cleanup timeout
   }, [selectedLanguage]); // Dependency on language change
 
