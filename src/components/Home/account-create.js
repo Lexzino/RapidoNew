@@ -62,7 +62,7 @@ const AccountCreate = () => {
           className={`fixed inset-0 z-[99999999] bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-300 ease-in-out ${popupOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         >
           <div
-            className="relative bg-white-light p-0 w-[90%] max-w-[1000px] h-[80vh] sm:w-[95%] sm:h-[80vh] flex flex-col transition-transform transform duration-300 ease-in-out"
+            className="relative bg-white-light w-[90%] max-w-[1000px] min-h-[80vh] max-h-[90vh] sm:w-[95%] flex flex-col rounded-lg overflow-hidden transition-transform transform duration-300 ease-in-out"
             style={{
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.25)",
               transform: popupOpen ? "scale(1)" : "scale(0.8)", // Slide-in effect
@@ -70,9 +70,8 @@ const AccountCreate = () => {
           >
             <button
               onClick={handleClosePopup}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 z-10"
             >
-              {/* Custom Close Icon */}
               <svg
                 width="25"
                 height="25"
@@ -87,12 +86,12 @@ const AccountCreate = () => {
               </svg>
             </button>
 
-            {/* Render Login or Signup */}
-            <div className="flex-grow flex items-center justify-center overflow-y-auto">
+            {/* Scrollable Content Area */}
+            <div className="flex-grow overflow-y-auto">
               {activePopup === "login" ? (
-                <Login className="w-full h-full" /> // Ensure Login fills the space
+                <Login className="w-full min-h-full" />
               ) : (
-                <Signup className="w-full h-full" /> // Ensure Signup also fills space
+                <Signup className="w-full min-h-full" />
               )}
             </div>
           </div>
